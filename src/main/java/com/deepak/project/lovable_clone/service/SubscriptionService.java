@@ -12,5 +12,5 @@ public interface SubscriptionService {
 
     CheckoutResponse getCheckOutResponse(CheckoutRequest request, Long userId);
 
-    PortalResponse openCustomerPortal();
+    PortalResponse openCustomerPortal(Long userId);
 }

@@ -6,5 +6,5 @@ import com.deepak.project.lovable_clone.dto.project.FileNode;
 public interface FileService {
     FileNode getFileTree(Long projectId, Long userId);
 
-    FileContentResponse getFileContent(Long projectId, Long userId);
+    FileContentResponse getFileContent(Long projectId,String path, Long userId);
 }

@@ -7,7 +7,6 @@ import com.deepak.project.lovable_clone.entity.ProjectMember;
 import com.deepak.project.lovable_clone.service.ProjectMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,7 +47,7 @@ public class ProjectMemberController {
     @DeleteMapping("/{memberId}")
     public ResponseEntity<MemberResponse> deleteMember(@PathVariable String projectId, @PathVariable String memberId){
         Long userId = 1L;
-        projectMemberService.deleteProjectMember(projectId,memberId);
+        projectMemberService.deleteProjectMember(projectId,memberId,userId);
         return ResponseEntity.noContent().build();
     }
 
