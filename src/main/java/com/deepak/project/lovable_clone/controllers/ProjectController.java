@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -35,6 +34,17 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(userId,projectRequest));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProjectById(@PathVariable Long id){
+        Long userId =1L;
+        projectService.softDelete(userId,id);
+        return ResponseEntity.noContent().build();
+    }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @RequestBody ProjectRequest projectRequest){
+        Long userId =1L;
+        return ResponseEntity.ok(projectService.updateProject(id,userId,projectRequest));
+    }
 
 }
