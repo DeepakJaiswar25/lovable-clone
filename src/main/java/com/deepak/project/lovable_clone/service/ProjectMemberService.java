@@ -15,5 +15,5 @@ public interface ProjectMemberService {
 
     MemberResponse updateMemberRole(String projectId, String memberId, InviteMemberRequest inviteMemberRequest, Long userId);
 
-    void deleteProjectMember(String projectId, String memberId);
+    void deleteProjectMember(String projectId, String memberId,Long UserId);
 }
