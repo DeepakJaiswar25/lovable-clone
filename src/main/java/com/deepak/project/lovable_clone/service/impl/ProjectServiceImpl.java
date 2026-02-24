@@ -2,19 +2,46 @@ package com.deepak.project.lovable_clone.service.impl;
 
 import com.deepak.project.lovable_clone.dto.project.ProjectRequest;
 import com.deepak.project.lovable_clone.dto.project.ProjectResponse;
+import com.deepak.project.lovable_clone.dto.project.ProjectSummaryResponse;
+import com.deepak.project.lovable_clone.entity.Project;
+import com.deepak.project.lovable_clone.entity.User;
+import com.deepak.project.lovable_clone.mapper.ProjectMapper;
+import com.deepak.project.lovable_clone.repository.ProjectRepository;
+import com.deepak.project.lovable_clone.repository.UserRepository;
 import com.deepak.project.lovable_clone.service.ProjectService;
+import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@Transactional
 public class ProjectServiceImpl implements ProjectService {
+
+    ProjectMapper projectMapper;
+    ProjectRepository projectRepository;
+    UserRepository userRepository;
+
     @Override
-    public List<ProjectResponse> getUserProjects(Long userId) {
-        return List.of();
+    public List<ProjectSummaryResponse> getUserProjects(Long userId) {
+        List<Project> projects= projectRepository.findByUserId(userId);
+       return  projects.stream()
+                .map(project -> projectMapper.ProjectToProjectSummaryResponse(project))
+                .collect(Collectors.toList());
     }
 
     @Override
     public ProjectResponse createProject(Long userId, ProjectRequest projectRequest) {
-        return null;
+        User user = userRepository.findById(userId).orElseThrow();
+        Project project=Project.builder().name(projectRequest.name()).owner(user).isPublic(false).build();
+        project= projectRepository.save(project);
+        return projectMapper.ProjectToProjectResponse(project);
     }
 
     @Override

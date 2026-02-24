@@ -3,7 +3,9 @@ package com.deepak.project.lovable_clone.service.impl;
 import com.deepak.project.lovable_clone.dto.subscription.PlanLimitsResponse;
 import com.deepak.project.lovable_clone.dto.subscription.UsageTodayResponse;
 import com.deepak.project.lovable_clone.service.UsageService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class UsageServiceImpl implements UsageService {
     @Override
     public UsageTodayResponse getUsageToday(Long userId) {

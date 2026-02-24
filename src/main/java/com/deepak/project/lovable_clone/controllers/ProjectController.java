@@ -2,6 +2,7 @@ package com.deepak.project.lovable_clone.controllers;
 
 import com.deepak.project.lovable_clone.dto.project.ProjectRequest;
 import com.deepak.project.lovable_clone.dto.project.ProjectResponse;
+import com.deepak.project.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.deepak.project.lovable_clone.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,7 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping
-    public ResponseEntity<List<ProjectResponse>> getMyProjects() {
+    public ResponseEntity<List<ProjectSummaryResponse>> getMyProjects() {
         Long userId =1L;
         return ResponseEntity.ok(projectService.getUserProjects(userId));
     }
