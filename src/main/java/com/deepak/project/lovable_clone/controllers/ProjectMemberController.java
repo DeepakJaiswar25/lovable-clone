@@ -3,6 +3,7 @@ package com.deepak.project.lovable_clone.controllers;
 
 import com.deepak.project.lovable_clone.dto.member.InviteMemberRequest;
 import com.deepak.project.lovable_clone.dto.member.MemberResponse;
+import com.deepak.project.lovable_clone.dto.member.UpdateMemberRoleRequest;
 import com.deepak.project.lovable_clone.entity.ProjectMember;
 import com.deepak.project.lovable_clone.service.ProjectMemberService;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +37,10 @@ public class ProjectMemberController {
 
     @PatchMapping("/{memberId}")
     public ResponseEntity<MemberResponse> updateMemberRole(
-            @PathVariable String projectId, @PathVariable String memberId,@RequestBody InviteMemberRequest inviteMemberRequest
+            @PathVariable String projectId, @PathVariable String memberId, @RequestBody UpdateMemberRoleRequest updateMemberRoleRequest
     ){
         Long userId = 1L;
-        return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId, memberId, inviteMemberRequest, userId));
+        return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId, memberId, updateMemberRoleRequest, userId));
     }
 
 
