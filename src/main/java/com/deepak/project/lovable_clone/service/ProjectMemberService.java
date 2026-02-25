@@ -10,11 +10,11 @@ import java.util.List;
 public interface ProjectMemberService {
 
 
-    List<ProjectMember> getProjectMembers(Long userId, Long projectId);
+    List<MemberResponse> getProjectMembers(Long userId, Long projectId);
 
     MemberResponse inviteMembers(Long userId, InviteMemberRequest inviteMemberRequest, Long projectId);
 
-    MemberResponse updateMemberRole(String projectId, String memberId, UpdateMemberRoleRequest inviteMemberRequest, Long userId);
+    MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest inviteMemberRequest, Long userId);
 
-    void deleteProjectMember(String projectId, String memberId,Long UserId);
+    void removeProjectMember(Long projectId, Long memberId,Long UserId);
 }

@@ -47,5 +47,4 @@ public class ProjectController {
         Long userId =1L;
         return ResponseEntity.ok(projectService.updateProject(id,userId,projectRequest));
     }
-
 }
