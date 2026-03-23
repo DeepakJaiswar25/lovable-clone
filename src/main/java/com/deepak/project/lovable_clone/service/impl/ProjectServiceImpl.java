@@ -5,6 +5,7 @@ import com.deepak.project.lovable_clone.dto.project.ProjectResponse;
 import com.deepak.project.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.deepak.project.lovable_clone.entity.Project;
 import com.deepak.project.lovable_clone.entity.User;
+import com.deepak.project.lovable_clone.error.ResourceNotFoundException;
 import com.deepak.project.lovable_clone.mapper.ProjectMapper;
 import com.deepak.project.lovable_clone.repository.ProjectRepository;
 import com.deepak.project.lovable_clone.repository.UserRepository;
@@ -39,8 +40,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(Long userId, ProjectRequest projectRequest) {
-        User user = userRepository.findById(userId).orElseThrow();
-        Project project=Project.builder().name(projectRequest.name()).owner(user).isPublic(false).build();
+        User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User",userId.toString()));
+        Project project=Project.builder()
+                .name(projectRequest.name())
+                .isPublic(false)
+                .build();
         project= projectRepository.save(project);
         return projectMapper.ProjectToProjectResponse(project);
     }
@@ -48,9 +52,6 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void softDelete(Long userId, Long id) {
        Project project= getAccessibleProjectById(id, userId);
-       if(!project.getOwner().getId().equals(userId)){
-         throw  new RuntimeException("You are not allowed to delete this project");
-       }
        project.setDeletedAt(Instant.now());
        projectRepository.save(project);
     }

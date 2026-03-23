@@ -7,7 +7,6 @@ import com.deepak.project.lovable_clone.entity.Project;
 import com.deepak.project.lovable_clone.entity.ProjectMember;
 import com.deepak.project.lovable_clone.entity.ProjectMemberId;
 import com.deepak.project.lovable_clone.entity.User;
-import com.deepak.project.lovable_clone.enums.ProjectRole;
 import com.deepak.project.lovable_clone.mapper.ProjectMemberMapper;
 import com.deepak.project.lovable_clone.repository.ProjectMemberRepository;
 import com.deepak.project.lovable_clone.repository.ProjectRepository;
@@ -20,7 +19,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -37,25 +35,19 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     public List<MemberResponse> getProjectMembers(Long userId, Long projectId) {
 
         Project project =  getAccessibleProjectById(projectId, userId);
-        List<MemberResponse> projectMembers= new ArrayList<>();
-        projectMembers.add(projectMemberMapper.UserToMemberResponse(project.getOwner()));
-        projectMembers.addAll(
-                projectMemberRepository.findByIdProjectId(project.getId())
+
+          return projectMemberRepository.findByIdProjectId(project.getId())
                         .stream()
                         .map(projectMember -> projectMemberMapper.ProjectMemberToMemberResponse(projectMember))
-                        .toList());
+                        .toList();
 
-        return projectMembers;
     }
 
     @Override
     public MemberResponse inviteMembers(Long userId, InviteMemberRequest inviteMemberRequest, Long projectId) {
 
         Project project= getAccessibleProjectById(projectId, userId);
-        if(!project.getOwner().getId().equals(userId)){
-            throw new RuntimeException("Not Allowed to invite members");
-        }
-        User invitee= userRepository.findByEmail(inviteMemberRequest.email()).orElseThrow();
+        User invitee= userRepository.findByUsername(inviteMemberRequest.username()).orElseThrow();
         if(invitee.getId().equals(userId)){
             throw new RuntimeException("Not Allowed to invite yourself");
         }
@@ -79,9 +71,6 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     public MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest inviteMemberRequest, Long userId) {
         Project  project = getAccessibleProjectById(projectId, userId);
-        if(!project.getOwner().getId().equals(userId)){
-            throw new RuntimeException("Not Allowed to update member");
-        }
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         ProjectMember projectMember = projectMemberRepository.findById(projectMemberId).orElseThrow();
         projectMember.setRole(inviteMemberRequest.role());
@@ -92,9 +81,6 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     public void removeProjectMember(Long projectId, Long memberId, Long UserId) {
         Project project = getAccessibleProjectById(projectId, UserId);
-        if(!project.getOwner().getId().equals(UserId)){
-            throw new RuntimeException("Not Allowed to remove member");
-        }
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         if(!projectMemberRepository.existsById(projectMemberId)){
             throw new RuntimeException("Cannot Remove member");
