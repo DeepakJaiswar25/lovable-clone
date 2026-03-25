@@ -3,6 +3,7 @@ package com.deepak.project.lovable_clone.controllers;
 import com.deepak.project.lovable_clone.dto.auth.AuthResponse;
 import com.deepak.project.lovable_clone.dto.auth.LoginRequest;
 import com.deepak.project.lovable_clone.dto.auth.SignupRequest;
+import com.deepak.project.lovable_clone.security.AuthUtil;
 import com.deepak.project.lovable_clone.service.AuthService;
 import com.deepak.project.lovable_clone.service.UserService;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ public class AuthController {
 
     AuthService authService;
     UserService userService;
+    AuthUtil authUtil;
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> signup(@RequestBody @Valid SignupRequest signupRequest){
@@ -36,7 +38,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getProfile(){
-        Long userId= 1L;
+        Long userId= authUtil.getCurrentUserId();
         return ResponseEntity.ok(userService.getProfile(userId));
     }
 }
