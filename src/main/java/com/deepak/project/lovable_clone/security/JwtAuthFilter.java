@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
@@ -24,6 +25,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     AuthUtil authUtil;
+    HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -46,9 +48,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request,response);
         } catch (JwtException e) {
-            throw new JwtException("Invalid JWT token: "+e.getMessage());
-        } catch (ServletException e) {
-            throw new RuntimeException(e);
+            log.error("JWT authentication failed: {}", e.getMessage());
+            handlerExceptionResolver.resolveException(request, response, null, e);
         }
     }
 }
