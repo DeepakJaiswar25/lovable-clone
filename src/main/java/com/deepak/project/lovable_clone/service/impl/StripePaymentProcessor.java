@@ -6,6 +6,7 @@ import com.deepak.project.lovable_clone.dto.subscription.PortalResponse;
 import com.deepak.project.lovable_clone.entity.Plan;
 import com.deepak.project.lovable_clone.entity.User;
 import com.deepak.project.lovable_clone.enums.SubscriptionStatus;
+import com.deepak.project.lovable_clone.error.BadRequestException;
 import com.deepak.project.lovable_clone.error.ResourceNotFoundException;
 import com.deepak.project.lovable_clone.repository.PlanRepository;
 import com.deepak.project.lovable_clone.repository.UserRepository;
@@ -18,7 +19,6 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -89,8 +89,29 @@ public class StripePaymentProcessor implements PaymentProcessor {
     }
 
     @Override
-    public PortalResponse openCustomerPortal(Long userId) {
-        return null;
+    public PortalResponse openCustomerPortal() {
+        Long userId=authUtil.getCurrentUserId();
+        User user= getUser(userId);
+        String stripeCustomerId = user.getStripeCustomerId();
+
+        if(stripeCustomerId==null || stripeCustomerId.isEmpty()){
+            throw new BadRequestException("User does not have a Stripe Customer Id, UserId:"+userId);
+        }
+
+        try {
+            var portalSession = com.stripe.model.billingportal.Session.create(
+                    com.stripe.param.billingportal.SessionCreateParams.builder()
+                            .setCustomer(stripeCustomerId)
+                            .setReturnUrl(frontendUrl)
+                            .build()
+            );
+
+            return new PortalResponse(portalSession.getUrl());
+        }
+        catch (StripeException e){
+            log.info("Stripe API error: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -106,8 +127,6 @@ public class StripePaymentProcessor implements PaymentProcessor {
         }
 
     }
-
-
 
 
     private void handleInvoicePaymentFailed(Invoice invoice) {
@@ -139,7 +158,6 @@ public class StripePaymentProcessor implements PaymentProcessor {
             throw new RuntimeException(e);
         }
     }
-
 
 
     private void handleSubscriptionDeleted(Subscription subscription) {

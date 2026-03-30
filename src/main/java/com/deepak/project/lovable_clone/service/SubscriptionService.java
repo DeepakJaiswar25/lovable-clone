@@ -11,8 +11,7 @@ import java.util.List;
 
 public interface SubscriptionService {
     SubscriptionResponse getCurrentSubscription();
-
-
+    
     void activateSubscription(Long userId, Long planId, String subscriptionId, String customerId);
 
     void updateSubscription(String id, SubscriptionStatus status, Instant periodStart, Instant periodEnd, Boolean cancelAtPeriodEnd, Long planId);
@@ -22,4 +21,6 @@ public interface SubscriptionService {
     void renewSubscriptionPeriod(String subId, Instant periodStart, Instant periodEnd);
 
     void markSubscriptionPastDue(String subId);
+
+    boolean canCreateNewProject();
 }

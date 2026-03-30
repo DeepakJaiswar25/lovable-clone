@@ -8,6 +8,7 @@ import com.deepak.project.lovable_clone.entity.ProjectMember;
 import com.deepak.project.lovable_clone.entity.ProjectMemberId;
 import com.deepak.project.lovable_clone.entity.User;
 import com.deepak.project.lovable_clone.enums.ProjectRole;
+import com.deepak.project.lovable_clone.error.BadRequestException;
 import com.deepak.project.lovable_clone.error.ResourceNotFoundException;
 import com.deepak.project.lovable_clone.mapper.ProjectMapper;
 import com.deepak.project.lovable_clone.repository.ProjectMemberRepository;
@@ -15,6 +16,7 @@ import com.deepak.project.lovable_clone.repository.ProjectRepository;
 import com.deepak.project.lovable_clone.repository.UserRepository;
 import com.deepak.project.lovable_clone.security.AuthUtil;
 import com.deepak.project.lovable_clone.service.ProjectService;
+import com.deepak.project.lovable_clone.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class ProjectServiceImpl implements ProjectService {
     ProjectMemberRepository projectMemberRepository;
     UserRepository userRepository;
     AuthUtil authUtil;
+    SubscriptionService subscriptionService;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -49,6 +52,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(ProjectRequest projectRequest) {
+        if(!subscriptionService.canCreateNewProject()) {
+            throw new BadRequestException("User cannot create a New project with current Plan, Upgrade plan now.");
+        }
         Long userId= authUtil.getCurrentUserId();
 //        User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User",userId.toString()));
         User user = userRepository.getReferenceById(userId);
