@@ -16,6 +16,7 @@ import com.deepak.project.lovable_clone.repository.ProjectRepository;
 import com.deepak.project.lovable_clone.repository.UserRepository;
 import com.deepak.project.lovable_clone.security.AuthUtil;
 import com.deepak.project.lovable_clone.service.ProjectService;
+import com.deepak.project.lovable_clone.service.ProjectTemplateService;
 import com.deepak.project.lovable_clone.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -40,6 +41,7 @@ public class ProjectServiceImpl implements ProjectService {
     UserRepository userRepository;
     AuthUtil authUtil;
     SubscriptionService subscriptionService;
+    ProjectTemplateService  projectTemplateService;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -74,6 +76,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
 
         projectMemberRepository.save(projectMember);
+        projectTemplateService.initializeProjectFromTemplate(project.getId());
         return projectMapper.ProjectToProjectResponse(project);
     }
 

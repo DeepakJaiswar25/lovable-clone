@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: lovable-clone
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Lovable
+    username: deepakjaiswar
+    password: MaxPayne&45
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-5.4-mini
+
+
+
+#Minio Configuration
+minio:
+  url: http://localhost:9000
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket: projects
+
+
+# Stripe Configuration
+stripe:
+  api:
+   secret: ${STRIPE_API_SECRET}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET}
+
+# JWT Configuration
+jwt:
+  secret-key: qazwsxedcrfvtgbyhnujmikoolpoiuytrewq
+
+frontend:
+  url: http://localhost:8080
+
+logging:
+  level:
+    org.springframework.ai:
+      chat.client: DEBUG
