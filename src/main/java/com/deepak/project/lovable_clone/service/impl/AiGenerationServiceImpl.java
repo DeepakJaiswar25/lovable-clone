@@ -1,27 +1,29 @@
 package com.deepak.project.lovable_clone.service.impl;
 
-import com.deepak.project.lovable_clone.entity.ChatSession;
-import com.deepak.project.lovable_clone.entity.ChatSessionId;
-import com.deepak.project.lovable_clone.entity.Project;
-import com.deepak.project.lovable_clone.entity.User;
+import com.deepak.project.lovable_clone.entity.*;
+import com.deepak.project.lovable_clone.enums.ChatEventType;
+import com.deepak.project.lovable_clone.enums.MessageRole;
 import com.deepak.project.lovable_clone.error.ResourceNotFoundException;
+import com.deepak.project.lovable_clone.llm.LlmResponseParser;
 import com.deepak.project.lovable_clone.llm.advisors.FileTreeAdvisor;
 import com.deepak.project.lovable_clone.llm.PromptUtils;
 import com.deepak.project.lovable_clone.llm.tools.CodeGenerationTools;
-import com.deepak.project.lovable_clone.repository.ChatSessionRepository;
-import com.deepak.project.lovable_clone.repository.ProjectRepository;
-import com.deepak.project.lovable_clone.repository.UserRepository;
+import com.deepak.project.lovable_clone.repository.*;
 import com.deepak.project.lovable_clone.security.AuthUtil;
 import com.deepak.project.lovable_clone.service.AiGenerationService;
 import com.deepak.project.lovable_clone.service.ProjectFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,13 +39,16 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final ChatSessionRepository chatSessionRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final LlmResponseParser llmResponseParser;
 
     private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">(.*?)</file>", Pattern.DOTALL);
+    private final ChatEventRepository chatEventRepository;
 
 
     @Override
-//    @PreAuthorize("@security.canEditProject(#projectId)")
-    public Flux<String> streamResponse(String message, Long projectId) {
+   @PreAuthorize("@security.canEditProject(#projectId)")
+    public Flux<String> streamResponse(String userMessage, Long projectId) {
 
         Long userId = authUtil.getCurrentUserId();
         ChatSession chatSession= createChatSessionIfNotExists(projectId, userId);
@@ -52,9 +57,11 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         StringBuilder fullResponseBuffer=new StringBuilder();
 
         CodeGenerationTools codeGenerationTools= new CodeGenerationTools(projectFileService, projectId);
+        AtomicReference<Long> startTime = new AtomicReference<>(System.currentTimeMillis());
+        AtomicReference<Long> endTime = new AtomicReference<>(0L);
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
-                .user(message)
+                .user(userMessage)
                 .tools(codeGenerationTools)
                 .advisors(
                         advisorSpec -> {
@@ -67,13 +74,18 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 .filter(r -> r.getResult() != null && r.getResult().getOutput() != null)
                 .doOnNext(response -> {
                     String content= response.getResult().getOutput().getText();
-                    fullResponseBuffer.append(content);
+                            if(content != null && !content.isEmpty() && endTime.get() == 0) { // first non-empty chunk received
+                                endTime.set(System.currentTimeMillis());
+                            }
+                            fullResponseBuffer.append(content);
                 }
                 )
                 .doOnComplete(
                         () -> {
                            Schedulers.boundedElastic().schedule(()-> {
-                                       parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
+//                                       parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
+                               long duration = (endTime.get() - startTime.get()) /  1000;
+                               finalizeChats(userMessage, chatSession, fullResponseBuffer.toString(), duration);
                                    }
                            );
 
@@ -87,6 +99,47 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 .map(chatResponse -> chatResponse.getResult().getOutput().getText());
     }
 
+    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration) {
+
+    Long projectId = chatSession.getProject().getId();
+
+    //Save User Message
+        chatMessageRepository.save(
+                ChatMessage.builder()
+                .chatSession(chatSession)
+                .role(MessageRole.USER)
+                .content(userMessage)
+                .build());
+
+    // Save Assistant Message
+
+        ChatMessage ASSISTANT_MESSAGE=  ChatMessage.builder()
+                .chatSession(chatSession)
+                .role(MessageRole.ASSISTANT)
+                .content("ASSISTANT MESSAGE HERE")
+                .build();
+        chatMessageRepository.save(ASSISTANT_MESSAGE);
+
+
+
+        List<ChatEvent> chatEventList = llmResponseParser.parseChatEvents(fullText, ASSISTANT_MESSAGE);
+        chatEventList.addFirst(ChatEvent.builder()
+                        .type(ChatEventType.THOUGHT)
+                        .chatMessage(ASSISTANT_MESSAGE)
+                        .content("Thought for "+duration+"s")
+                        .sequenceOrder(0)
+                .build());
+
+
+        chatEventList.stream()
+                .filter(event -> event.getType() == ChatEventType.FILE_EDIT)
+                .forEach(event -> {
+                    String filePath = event.getFilePath();
+                    String fileContent = event.getContent();
+                    projectFileService.saveFile(projectId, filePath, fileContent);
+                });
+        chatEventRepository.saveAll(chatEventList);
+    }
     private ChatSession createChatSessionIfNotExists(Long projectId, Long userId) {
 
         ChatSessionId chatSessionId= new ChatSessionId(projectId,userId);
