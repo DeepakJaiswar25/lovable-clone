@@ -17,5 +17,5 @@ public interface ProjectService {
 
     ProjectResponse updateProject(Long id, ProjectRequest projectRequest);
 
-    ProjectResponse getProjectById(Long id);
+    ProjectSummaryResponse getProjectById(Long id);
 }

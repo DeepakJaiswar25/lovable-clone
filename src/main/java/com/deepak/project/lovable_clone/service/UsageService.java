@@ -4,7 +4,6 @@ import com.deepak.project.lovable_clone.dto.subscription.PlanLimitsResponse;
 import com.deepak.project.lovable_clone.dto.subscription.UsageTodayResponse;
 
 public interface UsageService {
-    UsageTodayResponse getUsageToday(Long userId);
-
-    PlanLimitsResponse getPlanLimits(Long userId);
+    void recordTokenUsage(Long userId, int actualTokens);
+    void checkDailyTokensUsage();
 }

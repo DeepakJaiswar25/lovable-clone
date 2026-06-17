@@ -4,6 +4,7 @@ import com.deepak.project.lovable_clone.dto.project.ProjectRequest;
 import com.deepak.project.lovable_clone.dto.project.ProjectResponse;
 import com.deepak.project.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.deepak.project.lovable_clone.entity.Project;
+import com.deepak.project.lovable_clone.enums.ProjectRole;
 import jakarta.persistence.ManyToOne;
 import org.mapstruct.Mapper;
 
@@ -16,5 +17,5 @@ public interface ProjectMapper {
 
     List<ProjectSummaryResponse> ProjectToProjectSummaryResponseList(List<Project> projectList);
 
-    ProjectSummaryResponse ProjectToProjectSummaryResponse(Project project);
+    ProjectSummaryResponse ProjectToProjectSummaryResponse(Project project, ProjectRole role);
 }

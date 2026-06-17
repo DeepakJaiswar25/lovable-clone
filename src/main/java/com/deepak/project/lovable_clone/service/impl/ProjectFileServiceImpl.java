@@ -2,6 +2,7 @@ package com.deepak.project.lovable_clone.service.impl;
 
 import com.deepak.project.lovable_clone.dto.project.FileContentResponse;
 import com.deepak.project.lovable_clone.dto.project.FileNode;
+import com.deepak.project.lovable_clone.dto.project.FileTreeResponse;
 import com.deepak.project.lovable_clone.entity.Project;
 import com.deepak.project.lovable_clone.entity.ProjectFile;
 import com.deepak.project.lovable_clone.error.ResourceNotFoundException;
@@ -9,7 +10,6 @@ import com.deepak.project.lovable_clone.mapper.ProjectFileMapper;
 import com.deepak.project.lovable_clone.repository.ProjectFileRepository;
 import com.deepak.project.lovable_clone.repository.ProjectRepository;
 import com.deepak.project.lovable_clone.service.ProjectFileService;
-import com.deepak.project.lovable_clone.service.ProjectService;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -41,10 +41,11 @@ public class ProjectFileServiceImpl implements ProjectFileService {
     private final MinioClient minioClient;
     private final ProjectFileMapper projectFileMapper;
     @Override
-    public List<FileNode> getFileTree(Long projectId) {
+    public FileTreeResponse getFileTree(Long projectId) {
         List<ProjectFile> projectFileList = projectFileRepository.findByProjectId(projectId);
 
-        return projectFileMapper.toListOfFileNode(projectFileList);
+        List<FileNode> fileNodes= projectFileMapper.toListOfFileNode(projectFileList);
+        return new FileTreeResponse(fileNodes);
     }
 
     @Override
