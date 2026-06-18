@@ -1,8 +1,10 @@
 package com.deepak.project.lovable_clone.controllers;
 
+import com.deepak.project.lovable_clone.dto.deploy.DeployResponse;
 import com.deepak.project.lovable_clone.dto.project.ProjectRequest;
 import com.deepak.project.lovable_clone.dto.project.ProjectResponse;
 import com.deepak.project.lovable_clone.dto.project.ProjectSummaryResponse;
+import com.deepak.project.lovable_clone.service.DeploymentService;
 import com.deepak.project.lovable_clone.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final DeploymentService deploymentService;
 
     @GetMapping
     public ResponseEntity<List<ProjectSummaryResponse>> getMyProjects() {
@@ -43,5 +46,10 @@ public class ProjectController {
     @PatchMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @RequestBody @Valid ProjectRequest projectRequest){
         return ResponseEntity.ok(projectService.updateProject(id,projectRequest));
+    }
+
+    @PostMapping("/{id}/deploy")
+    public ResponseEntity<DeployResponse> deployProject(@PathVariable Long id){
+        return ResponseEntity.ok(deploymentService.deploy(id));
     }
 }
